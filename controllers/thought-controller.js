@@ -1,37 +1,36 @@
-const { User, Thought } = require('../models');
+const { Thought, User } = require('../models');
 
 const thoughtController = {
-    async getAllThoughts(req, res) {
-        try {
-          const thoughts = await Thought.find({});
-          res.json(thoughts);
-        } catch (err) {
-          console.log(err);
-          res.status(400).json(err);
-        }
-      },
+  async getAllThoughts(req, res) {
+    try {
+      const thoughts = await Thought.find({});
+      res.json(thoughts);
+    } catch (err) {
+      console.log(err);
+      res.status(400).json(err);
+    }
+  },
 
-      async getThought(req, res) {
-        try {
-          const thought = await Thought.findOne({
-              _id: req.params.id
-            },
-          )
-          if (!thought) {
-            res.status(400).json({ 
-                message: 'Thought not found.',
-              }
-            );
-            return;
+  async getThought(req, res) {
+    try {
+      const thought = await Thought.findOne({
+          _id: req.params.id
+        },
+      )
+      if (!thought) {
+        res.status(400).json({ 
+            message: 'Thought not found.',
           }
-          res.json(thought);
-        } catch (err) {
-          console.log(err);
-          res.status(400).json(err);
-        }
-      },
+        );
+        return;
+      }
+      res.json(thought);
+    } catch (err) {
+      console.log(err);
+      res.status(400).json(err);
+    }
+  },
 
-       
   async createThought(req, res) {
     try {
       const newThought = await Thought.create(req.body)
@@ -53,7 +52,6 @@ const thoughtController = {
     }
   },
 
-
   async updateThought(req, res) {
     try {
       const updatedThought = await Thought.findOneAndUpdate(
@@ -78,25 +76,24 @@ const thoughtController = {
     }
   },
 
-
-  async updateThought(req, res) {
+  async deleteThought(req, res) {
     try {
-      const updatedThought = await Thought.findOneAndUpdate(
-        {
-          _id: req.params.id,
-        },
-        req.body,
-        { 
-          new: true, 
-        },
-      )
-      if (!updatedThought) {
+      const thoughtToRemove = await Thought.findByIdAndDelete(req.params.id);
+      if(!thoughtToRemove) {
         res.status(404).json({
           message: 'Thought not found.',
-        });
+        })
         return;
       }
-      res.json(updatedThought);
+      const user = await User.findOneAndUpdate(
+        { 
+          thoughts: { $eq: req.params.id },
+        }, 
+        { $pull : { thoughts: req.params.id }},
+        { 
+        }
+      )
+      res.json(thoughtToRemove);
     } catch (err) {
       console.log(err);
       res.status(500).json(err);
@@ -138,6 +135,6 @@ const thoughtController = {
 
   },
 
- }
+}
 
- module.exports = thoughtController;
+module.exports = thoughtController;

@@ -54,7 +54,7 @@ const userController = {
                     });
                     return
                 };
-                res,json(updateUser);
+                res.json(updateUser);
         } catch(err) {
             console.log(err);
             res.status(500).json(err);
@@ -78,22 +78,20 @@ const userController = {
         }
     },
 
-    async addFriendToUser(req, res) {
+    async addFriendToUser({params}, res) {
         try {
             const user = await User.findOneAndUpdate(
                 {
-                    _id: req.params.id,
-                    friends: {
-                        $ne: req.params.friendId
-                    }
+                    _id: params.id
                 },
-                {$push: { friends: req.params.friendId }},
-                {
-                    new: TextTrackCue,
-                    unique: true,
-                }
+                    {$push: { friends: params.friendId }},
+               
+                // {
+                //     // new: TextTrackCue,
+                //     // unique: true,
+                // }
             )
-            res.json({message: 'Friend added to user.'})
+           res.json(user)
         } catch (err) {
             console.log(err);
             res.status(500).json(err);
@@ -101,26 +99,30 @@ const userController = {
     }, 
 
 
+        async deleteFriendFromUser(req, res) {
+            try {
+              const user = await User.findOneAndUpdate(
+                { 
+                  _id: req.params.id,
+                }, 
+                { $pull : { friends: req.params.friendId }},
+                { 
+                  new: true,
+                }
+              )
+              res.json({message: 'Friend deleted from user.'});
+        
+            } catch (err) {
+              console.log(err);
+              res.status(500).json(err);
+            }
+        
+          }
+    };
 
-  async deleteFriendFromUser(req, res) {
-    try {
-      const user = await User.findOneAndUpdate(
-        { 
-          _id: req.params.id,
-        }, 
-        { $pull : { friends: req.params.friendId }},
-        { 
-          new: true,
-        }
-      )
-      res.json({message: 'Friend deleted from user.'});
 
-    } catch (err) {
-      console.log(err);
-      res.status(500).json(err);
-    }
 
-  }
-};
+
+
 
 module.exports = userController;

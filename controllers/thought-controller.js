@@ -3,7 +3,11 @@ const { Thought, User } = require('../models');
 const thoughtController = {
   async getAllThoughts(req, res) {
     try {
-      const thoughts = await Thought.find({});
+      const thoughts = await Thought.find({})
+      .populate({
+        path: 'reactions',
+        select: '-__v'
+      });
       res.json(thoughts);
     } catch (err) {
       console.log(err);
@@ -117,24 +121,21 @@ const thoughtController = {
     }
   },
 
-  async deleteReaction(req, res) {
-    try {
-      const thoughtToRemoveReactionFrom = await Thought.findOne({ _id: req.params.id});
-      if (!thoughtToReactTo) {
-        res.status(404).json({
-          message: 'Thought not found.',
-        })
+  async deleteReaction({params}, res) {
+    Thought.findByIdAndUpdate(
+      {_id: params.id},
+      { $pull: { reactions: { reactionId: params.reactionId } } },
+      {new: true}
+    )
+    .then(dbThoughtData => {
+      if (!dbThoughtData) {
+        res.status(404).json({ message: "Reaction deleted from thought"});
+        return
       }
-      thoughtToRemoveReactionFrom.reactions.id(req.body.reactionId).remove();
-      res.json(thoughtToReactTo);
-
-    } catch (err) {
-      console.log(err);
-      res.status(500).json(err);
-    }
-
-  },
-
+      res.json(dbThoughtData);
+    })
+    .catch(err => res.json(err))
+  }
 }
 
 module.exports = thoughtController;

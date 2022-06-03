@@ -3,7 +3,15 @@ const { User } = require('../models');
 const userController = {
     async getAllUsers(re, res) {
         try {
-            const users = await User.find({});
+            const users = await User.find({})
+            .populate({
+                path: 'thoughts',
+                select: '-__v'
+            })
+            .populate({
+                path: 'friends',
+                select: '-__v'
+            })
             res.json(users);
         } catch (err) {
             console.log(err);
